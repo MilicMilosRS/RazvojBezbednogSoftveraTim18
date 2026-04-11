@@ -86,15 +86,6 @@ Ove ranjivosti najčešće nastaju uslijed lošeg dizajna sistema. Glavni uzroci
    
 <img width="1920" height="1080" alt="Screenshot 2026-04-11 230851" src="https://github.com/user-attachments/assets/09f79bad-9b42-49f5-907e-6d780cd26092" />
 
-
-
-
-
-
-
-
-
-
 ### Lab 3: URL-based access control can be circumvented (Težina: Plavi)
 
 **Cilj zadatka:** Zaobići *front-end* kontrolu pristupa, pristupiti administratorskom panelu i obrisati korisnika `carlos`.
