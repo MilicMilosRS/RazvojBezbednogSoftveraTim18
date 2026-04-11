@@ -94,3 +94,72 @@ Ove ranjivosti najčešće nastaju uslijed lošeg dizajna sistema. Glavni uzroci
 
 
 
+
+### Lab 3: URL-based access control can be circumvented (Težina: Plavi)
+
+**Cilj zadatka:** Zaobići *front-end* kontrolu pristupa, pristupiti administratorskom panelu i obrisati korisnika `carlos`.
+
+**Metodologija i koraci rješavanja:**
+
+1. **Analiza mehanizma zaštite i prvobitni pokušaj:**
+   Prvi korak je bio pokušaj direktnog pristupa administratorskom interfejsu slanjem HTTP GET zahtjeva na putanju `/admin`.
+   Aplikacija je vratila poruku "Access denied" (Pristup odbijen), a u Burp Suite istoriji je zabilježen HTTP status `403 Forbidden`. Ovo ukazuje da je ispred *back-end* servera postavljen *front-end* proxy ili ruter koji je eksplicitno konfigurisan da blokira svaki spoljni zahtjev ka putanji `/admin`.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 232901" src="https://github.com/user-attachments/assets/5ab2c614-bdbe-4ba7-8b2a-f066c4aeb973" />
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 232923" src="https://github.com/user-attachments/assets/ccb38a99-2a9c-473e-bba1-18669ec6fbce" />
+
+2. **Zaobilaženje front-end zaštite manipulisanjem HTTP zaglavlja:**
+   Pošto je poznato da *back-end* framework podržava nestandardno HTTP zaglavlje `X-Original-URL`, moguće je prevariti *front-end* proxy. Presretnut je legitimni zahtjev ka početnoj stranici (`GET /`), koji *front-end* dozvoljava. Zatim je u zaglavlje ručno dodata linija `X-Original-URL: /admin`. 
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 233049" src="https://github.com/user-attachments/assets/ce223792-def6-426c-ba2e-1e0a02961e57" />
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 233100" src="https://github.com/user-attachments/assets/9c9d1a62-d4c7-4380-a941-2addb5e93e79" />
+
+   *Front-end* proxy je propustio ovaj zahtjev jer je ciljana putanja u samom zahtjevu bila bezopasna (`/`), ali je *back-end* server obradio `X-Original-URL` zaglavlje, premostio rutu i uspješno vratio sadržaj zaštićenog administratorskog panela.
+   
+3. **Priprema za eksploataciju i pronalazak putanje za brisanje:**
+   Pregledom učitanog administratorskog panela, identifikovana je tačna putanja potrebna za brisanje korisnika: `/admin/delete?username=carlos`.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 233139" src="https://github.com/user-attachments/assets/317f09ea-8a6e-4b1d-95a0-3b827c280fe0" />
+
+   Kada se pokušalo sa ubacivanjem cijele ove putanje (zajedno sa query parametrom) u `X-Original-URL` zaglavlje, aplikacija je vratila grešku "Missing parameter 'username'". Ovo je otkrilo specifično ponašanje *back-end* rutera: on mapira putanju iz zaglavlja, ali očekuje da se query parametri nalaze u glavnom URL-u zahtjeva.
+
+3. **Korišćenje Burp Repeater-a za finalno izvršenje napada:**
+   Da bi se ostvarila precizna kontrola nad zahtjevom bez ometanja od strane pozadinskog saobraćaja browsera, validan HTTP zahtjev je prebačen u alat **Burp Repeater**.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 234111" src="https://github.com/user-attachments/assets/2b3023a5-0efa-4094-8632-27748326b1e1" />
+
+   Napad je razdvojen na dva dijela unutar istog zahteva:
+   * Ciljani parametar je dodat u glavni URL zahtjeva: `GET /?username=carlos` (kako bi ga backend pročitao).
+   * Putanja za brisanje je dodata u zaglavlje: `X-Original-URL: /admin/delete` (kako bi se zaobišao frontend).   
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 234707" src="https://github.com/user-attachments/assets/d932c01a-2f30-4db6-97ea-5ed9afa26804" />
+
+4. **Potvrda uspješnog brisanja:**
+   Nakon slanja ovog modifikovanog zahtjeva kroz Repeater, server je odgovorio sa HTTP statusom `302 Found`, što je indikator da je akcija uspješno procesuirana i da server pokušava redirekciju nazad na admin panel.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 234733" src="https://github.com/user-attachments/assets/1d65d42d-14fa-4bbc-b67a-72c991755634" />
+   
+   Osvježavanjem početne stranice u browseru, potvrđeno je da je korisnik `carlos` uspješno obrisan, čime je ranjivost uspješno eksploatisana, a zadatak riješen.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 234747" src="https://github.com/user-attachments/assets/57f6dc3c-e675-4b4a-99b9-f1b481209d4b" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
