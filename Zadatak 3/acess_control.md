@@ -189,14 +189,53 @@ Ove ranjivosti najčešće nastaju uslijed lošeg dizajna sistema. Glavni uzroci
 
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 002753" src="https://github.com/user-attachments/assets/30b9c8cc-3479-4a63-9325-ba570968b15b" />
 
+### Lab 5: Multi-step process with no access control on one step (Težina: Plavi)
 
+**Cilj zadatka:**  Prijaviti se na sistem koristeći kredencijale običnog korisnika (`wiener:peter`) i iskoristiti loše implementiranu kontrolu pristupa u procesu promjene korisničkih uloga (koji se odvija u više koraka), kako biste sopstvene privilegije eskalirali na nivo administratora.
 
+**Metodologija i koraci rješavanja:**
 
+1. **Analiza procesa sa privilegovanog naloga:**
+   Kako bismo razumjeli mehanizam promjene privilegija, prvo smo se prijavili na sistem koristeći administratorske kredencijale (`administrator:admin`).
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005359" src="https://github.com/user-attachments/assets/a1c04284-3e3b-48b9-9598-fc1a28710c80" />
+   
+   Pristupom administratorskom panelu, uočen je spisak korisnika i akcija "Upgrade user".
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005407" src="https://github.com/user-attachments/assets/170efadf-bb2b-4f3a-b0b7-b8306133e72a" />
 
+   Klikom na ovu opciju, akcija se ne izvršava odmah, već aplikacija zahtjeva dodatni korak: potvrdu akcije na posebnoj stranici ("Are you sure you want to upgrade user carlos?").
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005415" src="https://github.com/user-attachments/assets/26712b1e-1245-4af2-8a95-efdf0d2dbb89" />
 
+2. **Identifikacija ranjivog koraka kroz presretanje saobraćaja:**
+   Nakon klika na dugme za potvrdu, u alatu Burp Suite (tab HTTP history) analiziran je saobraćaj. 
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005426" src="https://github.com/user-attachments/assets/f7c2ac1d-0702-4a6b-925b-af79cabb32fb" />
 
+   Identifikovan je `POST` zahtjev ka putanji `/admin-roles` koji u svom tijelu sadrži ključne parametre: `action=upgrade&confirmed=true&username=carlos`. Prisustvo parametra `confirmed=true` ukazuje na to da je ovo finalni korak procesa koji backend direktno obrađuje. Ovaj zahtjev je proslijeđen u alat **Repeater**.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005540" src="https://github.com/user-attachments/assets/201b51a0-b1fd-48be-aaf5-495643384cd3" />
 
+3. **Priprema neprivilegovane sesije:**
+   Nakon odjave sa administratorskog naloga, izvršena je prijava sa kredencijalima običnog korisnika (`wiener:peter`).
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005612" src="https://github.com/user-attachments/assets/cde8a1d3-ce5b-4dca-8f3a-b2662ba8e984" />
 
+   Kroz Burp Suite, identifikovan je i kopiran aktuelni `session` kolačić koji pripada korisniku `wiener`, kako bi se iskoristio za autorizaciju u napadu.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005638" src="https://github.com/user-attachments/assets/8e11636b-22f9-4f9c-8617-7978d6a263d1" />
 
+4. **Eksploatacija direktnim pristupom završnom koraku:**
+   U alatu Repeater, originalni administratorski zahtjev je modifikovan. Prvo je zamijenjen sesijski kolačić našim neprivilegovanim (`wiener`) kolačićem.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005815" src="https://github.com/user-attachments/assets/5916fd9c-ed1d-4002-95ad-47e25137eb18" />
 
+   Zatim je u tijelu zahtjeva promijenjen parametar `username=carlos` u `username=wiener` kako bismo privilegije dodijelili sebi. Slanjem ovog zahtjeva, backend je odgovorio sa HTTP statusom `302 Found`, potvrđujući da je prihvatio komandu bez provjere da li korisnik zaista ima prava da inicira ovaj proces.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005827" src="https://github.com/user-attachments/assets/21bbc23b-fe33-463c-b748-06ce24405f0d" />
 
+5. **Potvrda uspješne eksploatacije:**
+   Direktnim slanjem parametra za potvrdu izbjegnuta je kontrola pristupa koja se vršila samo na prvom koraku procesa. Naš nalog je uspješno unaprijeđen u administratora, čime je laboratorija riješena.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 005843" src="https://github.com/user-attachments/assets/4827dad2-e4fc-42c1-8a3d-75cf730338e2" />
