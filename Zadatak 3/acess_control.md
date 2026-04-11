@@ -41,6 +41,56 @@ Ove ranjivosti najčešće nastaju uslijed lošeg dizajna sistema. Glavni uzroci
 
 <img width="1919" height="960" alt="image" src="https://github.com/user-attachments/assets/1f5facbb-47db-4edf-8541-b67c503bdf97" />
 
+### Lab 2: User role controlled by request parameter (Težina: Zeleni)
+
+**Cilj zadatka:** Pristupiti administratorskom panelu na putanji `/admin` i obrisati korisnika `carlos` modifikovanjem nesigurnog kolačića za autorizaciju.
+
+**Metodologija i koraci rješavanja:**
+
+1. **Autentifikacija korisnika:**
+   Prvi korak je bio prijavljivanje na aplikaciju korišćenjem obezbjeđenih kredencijala (`wiener:peter`). Nakon uspješne prijave, server uspostavlja sesiju.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 230632" src="https://github.com/user-attachments/assets/0d551a91-ca09-4e28-9465-391d346317a8" />
+   
+2. **Presretanje zahtjeva i eskalacija privilegija:**
+   Pokušaj pristupa putanji `/admin` je presretnut pomoću alata Burp Suite (Proxy Intercept). U zaglavlju HTTP GET zahtjeva primijećeno je prisustvo kolačića `Admin` čija je vrijednost inicijalno postavljena na `false`, što ukazuje na to da se kontrola pristupa vrši na klijentskoj strani.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 230649" src="https://github.com/user-attachments/assets/b50591c0-c24b-4a2b-a9da-95e103ce7444" />
+
+   Da bi se zaobišla ova loše implementirana kontrola pristupa, vrijednost parametra `Admin` u kolačiću je ručno modifikovana iz `false` u `true` prije nego što je zahtjev proslijeđen (Forward) ka serveru.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 230703" src="https://github.com/user-attachments/assets/03b12c7c-44df-4df1-937b-51a45805074c" />
+
+3. **Pristup administratorskom panelu:**
+   Server je obradio modifikovani zahtjev i, slijepo vjerujući vrijednosti kolačića, dodijelio administratorske privilegije, čime je omogućen pristup zaštićenom interfejsu.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 230716" src="https://github.com/user-attachments/assets/9ded5c51-11cb-4bcb-a9e4-604f376edc9a" />
+
+4. **Izvršenje akcije brisanja:**
+   Klinom na opciju "Delete" pored korisnika `carlos`, generisan je novi HTTP zahtjev ka putanji `/admin/delete?username=carlos`. Pošto browser u originalnom stanju ponovo šalje originalni kolačić, i ovaj zahtjev je presretnut u Burp Suite-u gdje se ponovo vidi `Admin=false`.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 230802" src="https://github.com/user-attachments/assets/e03db074-a028-4f36-85af-11b4b5bed334" />
+
+   Vrijednost je izmijenjena ponovo u `Admin=true` kako bi server autorizovao i samu komandu za brisanje.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 230813" src="https://github.com/user-attachments/assets/4b80c401-8617-462a-9312-095ddfe5c2a1" />
+
+5. **Potvrda akcije:**
+   Nakon brisanja, server vrši redirekciju nazad na panel. Ovaj zahtjev za redirekciju je takođe presretnut i modifikovan (iz `false` u `true`) kako bi se stranica uspješno i do kraja učitala.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 230830" src="https://github.com/user-attachments/assets/143603b5-ca4f-44d2-8b6b-3b1fa4d258f8" />
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 230840" src="https://github.com/user-attachments/assets/274d224a-eff0-4dc2-b8ae-9a87c5e6e34a" />
+
+   Akcija je uspješno izvršena, korisnik je obrisan, a laboratorija je riješena. Ovo jasno demonstrira kritičnu grešku oslanjanja na korisnički kontrolisane parametre za sprovođenje serverske autorizacije.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-11 230851" src="https://github.com/user-attachments/assets/09f79bad-9b42-49f5-907e-6d780cd26092" />
+
+
+
+
+
+
 
 
 
