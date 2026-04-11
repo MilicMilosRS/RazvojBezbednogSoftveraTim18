@@ -136,12 +136,58 @@ Ove ranjivosti najčešće nastaju uslijed lošeg dizajna sistema. Glavni uzroci
    
 <img width="1920" height="1080" alt="Screenshot 2026-04-11 234747" src="https://github.com/user-attachments/assets/57f6dc3c-e675-4b4a-99b9-f1b481209d4b" />
 
+### Lab 4: Method-based access control can be circumvented (Težina: Plavi)
 
+**Cilj zadatka:** Laboratorija implementira kontrolu pristupa koja se djelimično oslanja na provjeru HTTP metode kojom se šalje zahtjev. Cilj je prijaviti se kao običan korisnik (`wiener:peter`) i iskoristiti ovu lošu implementaciju zaštite kako bismo eskalirali sopstvene privilegije na nivo administratora.
 
+**Metodologija i koraci rješavanja:**
 
+1. **Mapiranje funkcionalnosti sa privilegovanim nalogom:**
+   Kako bismo razumjeli kako aplikacija funkcioniše "ispod haube", prvi korak je bio prijavljivanje na sistem sa obezbjeđenim administratorskim kredencijalima (`administrator:admin`).
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002257" src="https://github.com/user-attachments/assets/056d2ead-4011-4f03-b88b-d3ffb25ca1bb" />
 
+   U okviru administratorskog panela, primijećena je lista korisnika i opcija za promjenu njihovih privilegija ("Upgrade user").
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002310" src="https://github.com/user-attachments/assets/7fabd0b0-0b13-47e0-9af5-76feeca6530b" />
 
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002323" src="https://github.com/user-attachments/assets/aba99738-aeb3-4aa8-a7e9-3b5e047dfc77" />
 
+   Ova akcija je presretnuta u alatu Burp Suite (tab HTTP history). Zabilježeno je da aplikacija promjenu privilegija vrši slanjem HTTP `POST` zahtjeva na putanju `/admin-roles`, sa parametrima `username=carlos` i `action=upgrade` u tijelu zahtjeva. Ovaj zahtjev je proslijeđen u alat **Repeater** radi kasnije analize.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002426" src="https://github.com/user-attachments/assets/05ec44d2-e431-4561-98db-dd0340ed6097" />
+
+2. **Preuzimanje identiteta neprivilegovanog korisnika:**
+   Nakon odjave sa administratorskog naloga, izvršena je prijava sa kredencijalima običnog korisnika (`wiener:peter`).
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002451" src="https://github.com/user-attachments/assets/b651ae3b-c42d-40be-9039-b90920ac84a6" />
+
+   Kroz Burp Suite HTTP history, identifikovan je i kopiran aktuelni `session` kolačić koji pripada korisniku `wiener`.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002543" src="https://github.com/user-attachments/assets/d9ec61ef-2096-428a-8b1b-753615832f7c" />
+
+3. **Testiranje implementirane kontrole pristupa:**
+   U alatu Repeater, u ranije sačuvanom `POST` zahtjevu za promjenu privilegija, administratorski sesijski kolačić je zamijenjen kolačićem korisnika `wiener`. Slanjem ovakvog zahtjeva, server je odgovorio sa HTTP statusom `401 Unauthorized`. Ovo potvrđuje da backend aktivno blokira `POST` zahtjeve ka `/admin-roles` ukoliko korisnik nema odgovarajuća prava.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002628" src="https://github.com/user-attachments/assets/ab4e294f-c4ac-4438-9e59-328eb82c2626" />
+
+4. **Zaobilaženje zaštite manipulacijom HTTP metode:**
+   S obzirom na to da se filteri često pogrešno konfigurišu tako da blokiraju samo određene HTTP metode (npr. samo `POST`), pokušano je slanje istih parametara koristeći alternativnu metodu. U Burp Suite-u je iskorišćena opcija "Change request method" kako bi se `POST` zahtejv transformisao u `GET`.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002656" src="https://github.com/user-attachments/assets/c26e8e0d-1ed4-4cb5-9bc5-970e04461f88" />
+
+   Ovom promjenom, parametri iz tijela zahtjeva su automatski prebačeni u URL kao query string (`/admin-roles?username=carlos&action=upgrade`).
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002727" src="https://github.com/user-attachments/assets/4a849045-3987-40eb-9441-dc85992563c6" />
+
+   Kao finalni korak eksploatacije, parametar `username=carlos` je promijenjen u `username=wiener` kako bi se privilegije dodjelile našem nalogu. Modifikovani `GET` zahtjev je poslat serveru. Server je odgovorio sa HTTP statusom `302 Found`, bez ikakvog prijavljivanja greške (401), što ukazuje na to da je komanda uspješno zaobišla metodu-specifičan filter i da je backend izvršio autorizaciju kroz `GET` zahtjev.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002738" src="https://github.com/user-attachments/assets/c4e6c2f4-3edf-4064-aa63-2744d6c4f65e" />
+
+5. **Potvrda uspješne eksploatacije:**
+   Povratkom u browser i osvježavanjem stranice, potvrđeno je da nalog `wiener` sada posjeduje administratorske privilegije, čime je ranjivost uspješno dokazana i laboratorija riješena.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 002753" src="https://github.com/user-attachments/assets/30b9c8cc-3479-4a63-9325-ba570968b15b" />
 
 
 
