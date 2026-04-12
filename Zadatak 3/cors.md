@@ -143,6 +143,79 @@ Skripta je sačuvana (Store) i isporučena (Deliver exploit to victim), čime je
 
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 162721" src="https://github.com/user-attachments/assets/b9af813f-a1e7-48ec-aefa-2bd3a48546da" />
 
+### Lab 3: CORS vulnerability with trusted insecure protocols (Težina: Plavi)
+
+**Cilj zadatka:** Aplikacija posjeduje nesigurnu CORS konfiguraciju jer slijepo vjeruje svim svojim poddomenima, bez obzira na to koji protokol koriste (čak i nesigurni `http://`). Cilj je identifikovati ranjivi poddomen, iskoristiti XSS (Cross-Site Scripting) na njemu i konstruisati napad koji koristi CORS za krađu administratorskog API ključa.
+
+**Metodologija i koraci rješavanja:**
+
+1. **Prijava i pronalazak osetljive putanje:**
+   Proces testiranja započet je prijavom na sistem pomoću korisničkog naloga (`wiener:peter`).
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 164039" src="https://github.com/user-attachments/assets/8ab30cb8-ece3-4140-8ad2-5056d9c19ecc" />
+
+   Kroz alat Burp Suite, analiziran je mrežni saobraćaj. Identifikovan je HTTP `GET` zahtjev ka endpointu `/accountDetails`, koji vraća osjetljive podatke prijavljenog korisnika, uključujući njegov API ključ.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 164100" src="https://github.com/user-attachments/assets/54e15776-fce5-4c91-8a5a-3ae8c31129f9" />
+
+2. **Potvrda CORS ranjivosti:**
+   Zahtjev ka `/accountDetails` proslijeđen je u alat **Repeater** radi testiranja CORS polise. U HTTP zaglavlje je ručno dodata linija koja simulira zahtjev sa nesigurnog poddomena: `Origin: http://stock.0a7700dc04d2a07581fe575d006700b8.web-security-academy.net`.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 164115" src="https://github.com/user-attachments/assets/ac80e9f0-5254-4398-90a2-1f8d7d879353" />
+
+   Server je na ovaj zahtjev odgovorio zaglavljima `Access-Control-Allow-Origin: http://stock...` i `Access-Control-Allow-Credentials: true`. Ovime je dokazana ključna ranjivost: glavni, sigurni server (HTTPS) dozvoljava čitanje privatnih podataka sa nesigurnog (HTTP) poddomena.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 164221" src="https://github.com/user-attachments/assets/7e6cdc91-0f9f-483e-be4b-bd4fd2b0b3e8" />
+
+3. **Mapiranje aplikacije i pronalazak poddomena:**
+   Kako bismo iskoristili ovo povjerenje, bilo je neophodno pronaći način da izvršimo zlonamjerni kod sa tog nesigurnog poddomena. U browseru je otvorena stranica proizvoda kako bi se analizirale dodatne funkcionalnosti.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 164304" src="https://github.com/user-attachments/assets/e1df9ddc-0152-4479-adbc-2c75b0ab0f97" />
+
+   Klikom na dugme "Check stock" (Provjeri zalihe), u Burp-u je zabilježen pozadinski zahtjev koji komunicira sa putanjom za provjeru zaliha. Otkriveno je da je ova funkcionalnost nekada bila hostovana na odvojenom `stock` poddomenu.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 164320" src="https://github.com/user-attachments/assets/b1bbae2f-abe8-496f-a097-c55535471dc1" />
+
+4. **Otkrivanje XSS (Cross-Site Scripting) ranjivosti:**
+   Pristupljeno je direktno starom, nesigurnom poddomenu preko browsera, korišćenjem HTTP protokola: `http://stock.0a7700dc04d2a07581fe575d006700b8.web-security-academy.net/`.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 165619" src="https://github.com/user-attachments/assets/fce6df8f-7182-4ef3-a40e-9b0a7660df49" />
+
+   Testiran je URL parametar `productId` ubacivanjem osnovnog JavaScript payload-a: `<script>alert(1)</script>`. Aplikacija nije sanitizovala unos i payload se uspješno izvršio, što dokazuje prisustvo XSS ranjivosti na nesigurnom poddomenu. Ovo mjesto će poslužiti kao most za CORS napad.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 165703" src="https://github.com/user-attachments/assets/000a27c6-561c-402d-8b0a-489fc435d41a" />
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 165714" src="https://github.com/user-attachments/assets/91164914-1cf3-4d25-bb38-125de672c433" />
+
+5. **Priprema kompleksnog napada (XSS + CORS):**
+   Kako bi se ranjivost eksploatisala na administratoru, korišćen je ugrađeni Exploit server.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 165900" src="https://github.com/user-attachments/assets/387d6b8d-8f5c-4df0-95e4-8ffe2297a5d4" />
+
+   Cilj je natjerati pregledač administratora da posjeti ranjivi HTTP poddomen i izvrši XSS, koji će zatim u pozadini (koristeći CORS) zatražiti API ključ sa glavnog HTTPS servera i poslati ga nazad napadaču. U polje (Body) Exploit servera unijet je sljedeći JavaScript napad:
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 165948" src="https://github.com/user-attachments/assets/8314bfb6-0682-449f-843c-ccf7eb242d92" />
+ 
+   Skripta koristi `document.location` da preusmjeri žrtvu na ranjivi `stock` poddomen i injektuje novi XSS payload u `productId` parametar. Unutar tog XSS payload-a nalazi se `XMLHttpRequest` ka putanji `/accountDetails` na glavnom serveru, sa uključenim slanjem kolačića (`withCredentials = true`). Pošto glavni server vjeruje ovom poddomenu, on vraća API ključ, koji skripta zatim proslijeđuje na Exploit server napadača putem `/log?key=` parametra. Određeni karakteri su morali biti URL enkodirani (`%2b` za plus, `%3c` za manje od) kako bi se skripta pravilno proslijedila kroz link.
+
+6. **Isporuka napada i krađa API ključa:**
+   Napad je sačuvan (Store) i isporučen žrtvi (Deliver exploit to victim). Zatim su otvoreni pristupni logovi na Exploit serveru (Access log). U logovima je zabilježen dolazni HTTP `GET` zahtjev koji sadrži kompletan JSON objekat sa ukradenim administratorskim API ključem.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 170028" src="https://github.com/user-attachments/assets/98fb05fb-78c9-441b-b1e2-2ca19279a3bc" />
+
+7. **Rješavanje laboratorije:**
+   Ukradeni API ključ je iskopiran i proslijeđen aplikaciji kroz formu "Submit solution".
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 170048" src="https://github.com/user-attachments/assets/96d73b35-1642-4282-bf28-b3c6c9773cb4" />
+
+   Sistem je uspješno ovjerio rješenje, čime je dokazana kritičnost kombinovanja dvije naizgled odvojene ranjivosti (XSS na nesigurnom poddomenu i loša CORS polisa na glavnom domenu). Laboratorija je time uspješno riješena.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 170100" src="https://github.com/user-attachments/assets/2bb44d03-c14b-4606-bd17-daf7582978dc" />
+
+
+
+
+
 
 
 
