@@ -44,6 +44,7 @@ Veb-serveri često griješe u implementaciji CORS-a kako bi olakšali integracij
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 153643" src="https://github.com/user-attachments/assets/816ecc15-77cf-44ae-a786-4cadeee8128e" />
 
 3. **Priprema i isporuka zlonamjerne skripte (Exploit):**
+
    Kako bi se ranjivost eksploatisala na administratoru, korišćen je ugrađeni Exploit server. 
    
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 153732" src="https://github.com/user-attachments/assets/4d6e7547-5dba-40bd-813d-d7072f8be7e0" />
@@ -72,11 +73,11 @@ Skripta šalje asinhroni `GET` zahtjev ka ranjivom endpointu (uz slanje kolači�
 
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 160003" src="https://github.com/user-attachments/assets/7584c26b-e305-4466-a138-d781341fcc60" />
 
-    API ključ je iskopiran i unijet u polje za rešenje (Submit solution).
+   API ključ je iskopiran i unijet u polje za rešenje (Submit solution).
 
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 160156" src="https://github.com/user-attachments/assets/2b82812d-efbb-48a3-920e-24081239f925" />
 
-    Sistem je prihvatio ključ, čime je potvrđena uspješna eksploatacija ranjivosti, a laboratorija je riješena.
+   Sistem je prihvatio ključ, čime je potvrđena uspješna eksploatacija ranjivosti, a laboratorija je riješena.
 
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 160205" src="https://github.com/user-attachments/assets/25d3e5f9-e015-49cd-ba1c-f45cb33dc4fa" />
 
