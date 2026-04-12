@@ -102,4 +102,54 @@ Pronalaženje ranjivosti uglavnom se svodi na manipulaciju podacima na način ko
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 183835" src="https://github.com/user-attachments/assets/ba0d38c0-56fa-4265-a21c-1651e9fa5b29" />
 
    Uspješnom prijavom, korisnički nalog je kompromitovan, a laboratorija je zvanično riješena.
-   
+
+### Lab 3: Manipulating the WebSocket handshake to exploit vulnerabilities (Težina: Practitioner)
+
+**Cilj zadatka:** Aplikacija koristi WebSockets za "Live chat" funkcionalnost i posjeduje agresivan XSS filter. Cilj je iskoristiti manipulaciju WebSocket handshake-a (zaglavlja) kako bi se zaobišle restrikcije zasnovane na IP adresi i poslati modifikovan XSS payload kroz **Repeater** koji će pokrenuti `alert()` funkciju kod agenta.
+
+**Metodologija i koraci rješavanja:**
+
+1.  **Analiza i detekcija blokade:**
+    Nakon inicijalnog pokušaja slanja XSS koda, aplikacija je detektovala napad, prekinula konekciju i blokirala IP adresu korisnika.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 192836" src="https://github.com/user-attachments/assets/8f4503cf-0574-4abc-a5cf-c3925d932df3" />
+
+   Svaki sljedeći pokušaj povezivanja rezultovao je porukom "This address is blacklisted".
+
+2.  **Bypass IP restrikcije (Match and Replace):**
+    U Burp Suite postavkama (Proxy -\> Proxy settings) dodato je **Match and Replace** pravilo kako bi se u handshake zahtjev ubacilo zaglavlje `X-Forwarded-For`. Ovo je omogućilo serveru da zahtjev vidi kao da dolazi sa nove, neblokirane IP adrese (`1.1.1.99`), čime je ponovo uspostavljena WebSocket konekcija.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 202005" src="https://github.com/user-attachments/assets/32bc1068-1d9d-4729-a505-4367a72db00a" />
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 204910" src="https://github.com/user-attachments/assets/60de8398-b7bd-4e3e-b9d5-32db0f8e3ec1" />
+
+3.  **Eksploatacija putem Repeater-a:**
+    Za finalni napad korišćen je **Burp Repeater**. WebSocket poruka je presretnuta i poslata u Repeater tab. Ovakav pristup je omogućio slanje sirovog (raw) JSON paketa bez rizika da browser enkodira specijalne karaktere.
+
+    Konstruisan je payload koji zaobilazi filter koristeći miješana slova i backtick karaktere:
+    `{"message":"<img src=1 oNeRrOr=alert`1`>"}`
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 204956" src="https://github.com/user-attachments/assets/bbb32a02-fece-41fc-b2e0-f28af2bba72d" />
+
+4.  **Potvrda izvršavanja i rješavanje laba:**
+    Slanjem poruke iz Repeater-a, maliciozni kod je uspješno proslijeđen agentu (Hal Pline). U chat interfejsu se vidi ikonica polomljene slike, što potvrđuje da je HTML uspješno injektovan u stranicu.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 205026" src="https://github.com/user-attachments/assets/8c462c53-d0e3-4f7d-bfdc-d4c48c84ea5c" />
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 205034" src="https://github.com/user-attachments/assets/ba568fe9-129b-4c64-a0f2-1a3b14d686af" />
+
+Ubrzo nakon toga, na vrhu stranice se pojavio zeleni baner koji potvrđuje da je laboratorija uspješno riješena.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 205045" src="https://github.com/user-attachments/assets/e3c57c51-10fb-4957-95b5-3f69bd1fee2d" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
