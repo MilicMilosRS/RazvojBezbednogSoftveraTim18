@@ -55,3 +55,51 @@ Pronalaženje ranjivosti uglavnom se svodi na manipulaciju podacima na način ko
    
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 175603" src="https://github.com/user-attachments/assets/e70521c1-0e9c-45da-8bbd-0d6825f128a3" />
 
+### Lab 2: Cross-site WebSocket hijacking (Težina: Plavi)
+
+**Cilj zadatka:** Aplikacija koristi WebSockets za "Live chat" funkcionalnost, ali inicijalni HTTP zahtjev za uspostavljanje konekcije (Handshake) nije zaštićen od CSRF napada (oslanja se isključivo na sesijske kolačiće). Cilj je konstruisati Cross-Site WebSocket Hijacking (CSWSH) napad, ukrasti istoriju ćaskanja korisnika, pronaći njegovu lozinku u porukama i kompromitovati nalog.
+
+**Metodologija i koraci rješavanja:**
+
+1. **Analiza WebSocket konekcije:**
+   Proces je započet otvaranjem zadatka i analizom funkcionalnosti "Live chat-a".
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 180907" src="https://github.com/user-attachments/assets/e83082a1-e569-46ed-92d1-84e0d3795499" />
+
+   Korišćenjem alata Burp Suite, analiziran je proces uspostavljanja WebSocket konekcije. U HTTP istoriji zabilježen je `GET /chat` zahtjev (Handshake) sa statusom "101 Switching Protocols". Utvrđeno je da aplikacija autorizuje korisnika isključivo na osnovu proslijeđenog `session` kolačića, te da ne koristi nikakve nasumične CSRF tokene za zaštitu konekcije.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 181320" src="https://github.com/user-attachments/assets/374868b0-fb3f-4365-880f-ddc9b9d2752c" />
+ 
+   U WebSockets istoriji je primijećeno da klijent nakon otvaranja konekcije šalje komandu `READY` ka serveru, na šta server automatski odgovara slanjem cjelokupne istorije ćaskanja.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 182204" src="https://github.com/user-attachments/assets/0af10789-c740-4f45-8025-da0c06f22f8f" />
+
+2. **Priprema CSWSH napada:**
+   Kako bi se ranjivost eksploatisala, korišćen je ugrađeni Exploit server. Napisana je zlonamjerna JavaScript skripta koja otvara WebSocket konekciju ka ranjivom serveru sa domena napadača. S obzirom na nedostatak CSRF zaštite, pregledač žrtve prilikom otvaranja konekcije automatski priključuje njene sesijske kolačiće. 
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 182645" src="https://github.com/user-attachments/assets/8ba0f5dc-edf6-4275-8834-85b09e839660" />
+
+   Skripta nakon otvaranja konekcije šalje komandu `READY`. Sve pristigle poruke (koje sadrže žrtvinu istoriju chata) prikupljaju se, enkodiraju u **Base64 format** (kako bi se obezbjedio siguran prenos i izbjeglo pucanje HTTP zahtjeva) i šalju napadaču nazad kroz HTTP `GET` zahtjev kao URL parametar.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 183235" src="https://github.com/user-attachments/assets/8cf4166f-4a03-401e-87b8-3b0f86a4d7d5" />
+
+2. **Isporuka napada i krađa podataka:**
+   Napad je sačuvan i isporučen žrtvi (Deliver exploit to victim). Pregledom pristupnih logova (Access log) na Exploit serveru, zabilježeni su dolazni `GET` zahtjevi žrtve koji su u URL parametru `?key=` sadržali ukradene, Base64 enkodirane podatke iz chata.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 183604" src="https://github.com/user-attachments/assets/4f03763c-240e-40de-a2d1-8718d756ee6f" />
+
+   Odgovarajući Base64 string je izolovan i iskopiran radi dalje analize.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 183404" src="https://github.com/user-attachments/assets/53344ab3-316c-40c5-b9e3-657b2f496c00" />
+
+3. **Dekodiranje i kompromitovanje naloga:**
+   Ukradeni Base64 string je uspješno dekodiran, čime je dobijen pristup originalnoj JSON poruci iz chata, u kojoj agent podrške šalje lozinku korisniku.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 183436" src="https://github.com/user-attachments/assets/92caee82-fc01-4d4a-926d-629f7638fdb6" />
+ 
+   Iz poruke je ekstrahovana korisnička lozinka žrtve (`cn37bvzegankvblpd4fg`). Ovi kredencijali su iskorišćeni za uspješnu prijavu na sistem sa korisničkim imenom `carlos`.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 183835" src="https://github.com/user-attachments/assets/ba0d38c0-56fa-4265-a21c-1651e9fa5b29" />
+
+   Uspješnom prijavom, korisnički nalog je kompromitovan, a laboratorija je zvanično riješena.
+   
