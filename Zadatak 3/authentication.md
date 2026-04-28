@@ -35,32 +35,27 @@ Cilj zadatka je bio otkriti validno korisničko ime iz ponuđene liste na osnovu
 #### Korak 1: Presretanje zahteva
 Prvi korak je bio pokretanje Burp Suite Proxy-ja i hvatanje `POST /login` zahteva koji šalje podatke formi za prijavu. Ovaj zahtev nam služi kao osnova za dalji napad.
 
-![Screenshot 1![alt text](login-1-1.jpg) - HTTP History](./login-1.jpg)
-*(Ovde ubaci sliku gde se vidi POST /login u HTTP History tabu)*
+<img width="1897" height="111" alt="login-1" src="https://github.com/user-attachments/assets/8b91e9ed-b996-421e-ba37-ea29d5415589" />
 
 #### Korak 2: Konfiguracija meta napada (Positions)
 Zahtev je prosleđen u alat **Intruder**. Korišćen je tip napada **Sniper**. Prvo smo odredili polje `username` kao metu za "enumeration" (pogađanje korisničkog imena).
 
-![Screenshot 2 - Intruder Positions](./login2.jpg)
-*(Ovde ubaci sliku gde se vidi username=§test§)*
+<img width="1918" height="1012" alt="login2" src="https://github.com/user-attachments/assets/a5d10b93-4026-4e45-8c63-3d9c75f6d46d" />
 
 #### Korak 3: Identifikacija korisničkog imena
 Učitana je lista *Candidate usernames* u Payloads tab. Nakon pokretanja napada, analizom rezultata primećeno je da korisnik `ajax` vraća odgovor čija je dužina (**Length**) drugačija od svih ostalih.
 
-![Screenshot 3 - Username Results](./login3-final.jpg)
-*(OVDE UBACI SLIKU na kojoj si sortirala Length i gde se vidi da ajax odskače)*
+<img width="1918" height="903" alt="login3-final" src="https://github.com/user-attachments/assets/1597ac71-d424-4605-8a82-e4c7248846ee" />
 
 #### Korak 4: Brute-force lozinke
 Kada smo potvrdili da korisnik `ajax` postoji, vratili smo se na podešavanja i fiksirali username, dok smo polje `password` postavili kao novu metu. Korišćena je lista *Candidate passwords*. Za lozinku `ranger`, server je vratio statusni kod **302**.
 
-![Screenshot 4 - Password Results](./login4-pass-final.jpg)
-*(Ovde ubaci sliku gde se vidi status 302 za lozinku ranger)*
+<img width="1918" height="917" alt="login4-pass-final" src="https://github.com/user-attachments/assets/57453cd5-67bf-49df-825d-225fc3e01543" />
 
 #### Korak 5: Potvrda rešenja
 Unosom kredencijala `ajax:ranger` u formu za prijavu, dobijen je pristup nalogu i laboratorija je označena kao uspešno rešena.
 
-![Screenshot 5 - Lab Solved](./solved1-lab.jpg)
-*(Ovde ubaci sliku Congratulations, you solved the lab)*
+<img width="912" height="577" alt="solved1-lab" src="https://github.com/user-attachments/assets/e49f2e7f-f764-47df-b1f6-d14a1d8f6614" />
 
 ## Zadatak 2: 2FA simple bypass
 **Nivo:** Apprentice (Zeleni)
@@ -76,20 +71,18 @@ Prvo sam koristila sopstvene kredencijale (`wiener:peter`) kako bih mapirala kor
 #### Korak 2: Pokretanje napada na nalog žrtve
 Ulogovala sam se kao korisnik `carlos` koristeći lozinku `montoya`. Aplikacija je prihvatila lozinku i preusmerila me na stranicu za unos drugog faktora (2FA).
 
-![Screenshot 1 - Carlos 2FA zahtev](./lab2-carlos.jpg)
+<img width="1758" height="857" alt="lab2-carlos" src="https://github.com/user-attachments/assets/4a2a09c7-3268-4ce2-b939-3a2a266754b4" />
 *Slika prikazuje polje za unos koda za korisnika Carlos.*
 
 #### Korak 3: Manipulacija URL-om (Bypass tehnika)
 Pretpostavka je bila da je sesija za korisnika već kreirana u bazi nakon prvog koraka prijave. Umesto unosa koda, u adresnoj traci browsera sam ručno promenila URL sa `/login2` na `/my-account`.
 
-![Screenshot 2 - URL Manipulacija](./changing-url.jpg)
-*(Napomena: Ovde ubaci skrinšot gde se vidi kako u address bar-u pišeš /my-account)*
+<img width="1397" height="831" alt="changing-url" src="https://github.com/user-attachments/assets/6bf871b9-8a54-4cf7-a895-b2ed3637a9d3" />
 
 #### Korak 4: Uspešan pristup profilu
 Nakon pritiska na taster Enter, aplikacija me je direktno pustila na Carlosov profil, ignorišući potrebu za 2FA kodom. Laboratorija je time uspešno rešena.
 
-![Screenshot 3 - Lab Solved](./lab2-solved.jpg)
-*Potvrda o uspešnom pristupu nalogu korisnika Carlos i rešenom izazovu.*
+<img width="1726" height="862" alt="lab2-solved" src="https://github.com/user-attachments/assets/80944cf5-7a55-49e3-8b3f-b65ce1659a56" />
 
 ---
 
@@ -115,25 +108,25 @@ Cilj ovog zadatka bio je otkriti validno korisničko ime identifikacijom ekstrem
 #### Korak 1: Mapiranje suptilnih razlika (Grep - Extract)
 Pošto su poruke o grešci naizgled bile identične ("Invalid username or password."), koristili smo **Grep - Extract** funkciju u **Intruder** podešavanjima. Ova funkcija omogućava Burp-u da iz svakog HTTP odgovora "izvuče" tačan tekst poruke kako bismo lakše uočili razlike.
 
-![Screenshot 1 - Grep Extract Podešavanje](./jel%20ovo%20ok.jpg)
+<img width="857" height="805" alt="jel ovo ok" src="https://github.com/user-attachments/assets/ae7d8f4c-00c7-4503-8ba1-21e416a33554" />
 *Slika prikazuje proces definisanja ekstrakcije teksta unutar HTML-a kako bi se pratila svaka varijacija u poruci.*
 
 #### Korak 2: Identifikacija korisničkog imena (Enumeration)
 Učitali smo kompletnu listu *Candidate usernames* i pokrenuli **Sniper** napad. Analizom nove kolone koju je kreirao Grep - Extract, otkrili smo da korisnik `antivirus` (zahtev broj 66) vraća poruku koja se razlikuje za samo jedan karakter – **nedostaje tačka na kraju rečenice**.
 
-![Screenshot 2 - Username Results](./3-final-antivirus.jpg)
+<img width="1896" height="887" alt="3-final-antivirus" src="https://github.com/user-attachments/assets/41bdcbdd-b6ed-4826-97e3-1546dc6da491" />
 *Rezultati napada: Red 66 za payload 'antivirus' jasno pokazuje odstupanje u tekstu poruke o grešci.*
 
 #### Korak 3: Brute-force lozinke
 Nakon što smo potvrdili da korisnik `antivirus` postoji, vratili smo se na **Positions** tab, fiksirali username na `antivirus`, a kao metu postavili polje `password`. Učitali smo listu *Candidate passwords*. Za lozinku `mustang`, server je vratio statusni kod **302 Found**.
 
-![Screenshot 3 - Password Results](./lab3-found-pass.jpg)
+<img width="1900" height="898" alt="lab3-found-pass" src="https://github.com/user-attachments/assets/99826d62-38e2-4a77-860e-1d67ceaab1e7" />
 *Rezultati napada na lozinku: Status 302 potvrđuje da je 'mustang' ispravna lozinka.*
 
 #### Korak 4: Potvrda rešenja
 Korišćenjem pronađenih kredencijala (`antivirus:mustang`) na stranici za prijavu, uspešno smo pristupili korisničkom panelu i rešili laboratoriju.
 
-![Screenshot 4 - Lab Solved](./3-solved-antivirus.jpg)
+<img width="1901" height="637" alt="3-solved-antivirus" src="https://github.com/user-attachments/assets/5a5c6806-5a89-402f-a992-174cc92ca62f" />
 *Potvrda o uspešno rešenom zadatku i pristupu nalogu korisnika antivirus.*
 
 ---
@@ -162,31 +155,31 @@ Cilj ovog zadatka bio je zaobići zaštitu od brute-force napada koja se zasniva
 #### Korak 1: Postavljanje "cik-cak" strategije
 Kako bismo sprečili blokadu, morali smo da kreiramo specifičan redosled zahteva: jedan pokušaj za korisnika `carlos`, a zatim odmah jedan ispravan login za `wiener` kako bi se brojač na serveru vratio na nulu. Za ovo smo koristili **Pitchfork** tip napada u Intruderu.
 
-![Screenshot 1 - Podešavanje korisničkih imena](./4-username.jpg)
+<img width="1918" height="772" alt="4-username" src="https://github.com/user-attachments/assets/a5817c0e-e554-431d-81f0-ca28a70e668d" />
 *Payload 1: Lista u kojoj se naizmenično smenjuju wiener (za reset brojača) i carlos (meta).*
 
 #### Korak 2: Mapiranje lozinki
 Na isti način, druga lista payloada pratila je prvu: ispravna lozinka za naš nalog (`peter`), pa potencijalna lozinka za Carlosa iz ponuđene liste.
 
-![Screenshot 2 - Podešavanje lozinki](./4-password.jpg)
+<img width="1918" height="805" alt="4-password" src="https://github.com/user-attachments/assets/9cdbb8de-fb19-45ef-a8f1-551e799dedcf" />
 *Payload 2: Sinhronizovana lista lozinki gde svaka druga stavka odgovara našem ispravnom kredencijalu.*
 
 #### Korak 3: Konfiguracija Resource Pool-a
 Ovo je bio kritičan korak. Pošto server prati redosled pokušaja, morali smo osigurati da Burp Suite šalje samo **jedan po jedan** zahtev. Da su zahtevi išli paralelno, redosled bi se pomešao i IP bi bio blokiran.
 
-![Screenshot 3 - Limitiranje istovremenih zahteva](./4-pool.jpg)
+<img width="390" height="118" alt="4-pool" src="https://github.com/user-attachments/assets/cd1153fb-1103-4ccf-975d-5d8daa0b061f" />
 *Podešavanje Resource Pool-a na maksimalno 1 istovremeni zahtev (Maximum concurrent requests: 1).*
 
 #### Korak 4: Identifikacija lozinke
 Pokretanjem napada, pratili smo HTTP statuse. Svi zahtevi za korisnika `wiener` su vraćali **302**, dok su neuspešni pokušaji za Carlosa vraćali **200**. U 28. redu, korisnik `carlos` je vratio status **302**, što je označilo pronalazak lozinke.
 
-![Screenshot 4 - Uspešan pronalazak lozinke](./4-final-pass.jpg)
+<img width="1901" height="912" alt="4-final-pass" src="https://github.com/user-attachments/assets/eed427f2-1e62-49c2-a5f8-dd4df97265f7" />
 *Rezultat napada: Lozinka 'football' je uspešno ulogovala korisnika carlos.*
 
 #### Korak 5: Potvrda rešenja
 Unosom kredencijala `carlos:football` direktno u browseru, dobili smo pristup administratorskom panelu i laboratorija je uspešno rešena.
 
-![Screenshot 5 - Lab Solved](./4-solved-ip.jpg)
+<img width="1641" height="766" alt="4-solved-ip" src="https://github.com/user-attachments/assets/63a5511c-7b86-4282-85c3-f1f64b550496" />
 *Prikaz uspešno rešenog zadatka nakon prijave na Carlosov nalog.*
 
 ---
@@ -215,36 +208,37 @@ Cilj ovog zadatka bio je preuzimanje naloga korisnika `carlos` korišćenjem log
 #### Korak 1: Detekcija logičke greške (Oracle)
 Prvi korak je bio mapiranje ponašanja servera na sopstvenom nalogu (`wiener:peter`). Utvrđeno je da server validira podatke specifičnim redosledom. Ukoliko se unese ispravna trenutna lozinka, ali se nove lozinke ne poklapaju, server vraća poruku **"New passwords do not match"**. Ukoliko je trenutna lozinka pogrešna, poruka je **"Current password is incorrect"**. Ova razlika nam služi kao "Oracle" za potvrdu tačnosti lozinke.
 
-![Screenshot Fraza](./auth5-1-0.jpg)
+<img width="917" height="755" alt="auth5-1-0" src="https://github.com/user-attachments/assets/ebba3857-b4c0-4e6b-8c47-80fb339b0454" />
 
-![Screenshot 1 - Interceptovani zahtev](./auth5-1.jpg)
+<img width="1480" height="866" alt="auth5-1" src="https://github.com/user-attachments/assets/f190b45d-af28-4d65-8101-46610c96b1c6" />
 *Slika 1: Presretanje POST zahteva za promenu lozinke koji služi kao baza za napad.*
 
 #### Korak 2: Konfiguracija Intruder napada
 Zahtev sam prosledila u Intruder alat. Korisničko ime sam fiksirala na `carlos`, a polje `current-password` sam postavila kao metu napada. Polja za novu lozinku (`new-password-1` i `new-password-2`) sam popunila različitim vrednostima kako bih namerno izazvala ciljanu poruku o nepoklapanju ukoliko pogodim lozinku.
 
-![Screenshot 2 - Intruder Positions](./auth5-pre4.jpg)
-![Screenshot Fraza](./auth5-posle4.jpg)
+<img width="1310" height="737" alt="auth5-pre4" src="https://github.com/user-attachments/assets/faec7d7e-338f-430f-803f-72df72338cf9" />
+
+<img width="1400" height="831" alt="auth5-posle4" src="https://github.com/user-attachments/assets/e2abb3f3-b896-4b81-8384-afae41542791" />
 *Slika 2: Postavka meta u Intruderu sa fokusom na polje trenutne lozinke žrtve.*
 
 #### Korak 3: Automatizacija pretrage (Grep - Match)
 Da bih identifikovala ispravnu lozinku iz liste kandidata, koristila sam opciju **Grep - Match**. Definisala sam da Burp Suite prati pojavljivanje fraze "New passwords do not match" u odgovorima servera.
 
-![Screenshot Fraza](./auth5-3.jpg)
+<img width="440" height="178" alt="auth5-3" src="https://github.com/user-attachments/assets/241e050b-dd99-426a-956a-f40d361c6419" />
 
-![Screenshot 3 - Grep Match podešavanje](./auth5-grepmatch.jpg)
+<img width="597" height="461" alt="auth5-grepmatch" src="https://github.com/user-attachments/assets/ed1262ba-1214-4cb3-87bb-9b9590d8520c" />
 *Slika 3: Konfiguracija automatskog filtriranja rezultata na osnovu poruke o grešci.*
 
 #### Korak 4: Identifikacija lozinke i provala u nalog
 Nakon pokretanja napada, kolona Grep filtera je pokazala pogodak za lozinku **`aaaaaa`**. Ovo je bio jedini zahtev koji je prošao prvu barijeru validacije. Upotrebom ovih kredencijala, uspešno sam se prijavila na Carlosov nalog.
 
-![Screenshot 4 - Rezultati napada](./auth5-passfound.jpg)
+<img width="1918" height="1020" alt="auth5-passfound" src="https://github.com/user-attachments/assets/2feb433b-da70-4d7a-999d-52ed9278605b" />
 *Slika 4: Rezultat napada gde se jasno vidi da je lozinka 'aaaaaa' jedina aktivirala traženu poruku.*
 
 #### Korak 5: Potvrda rešenja
 Pristupom stranici "My account" kao korisnik `carlos`, laboratorija je označena kao uspešno rešena.
 
-![Screenshot 5 - Lab Solved](./auth5-finished.jpg)
+<img width="1468" height="238" alt="auth5-finished" src="https://github.com/user-attachments/assets/8296ca4f-2f7d-45f7-84a0-37853dfb46e2" />
 *Slika 5: Potvrda o uspešno završenom izazovu.*
 
 ---
