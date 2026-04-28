@@ -33,7 +33,9 @@ Cilj zadatka je bio iskoristiti potpuno odsustvo CSRF zaštite u formi za promen
 
 #### Korak 1: Analiza zahteva u Burp-u
 Prvi korak je bio prijava na nalog `wiener:peter` i promena email adrese. U **Burp Proxy > HTTP History** identifikovan je `POST /my-account/change-email` zahtev. Analizom je utvrđeno da zahtev ne sadrži nikakve anti-CSRF tokene.
-![Opis slike](./csrf1.jpg)
+
+<img width="1528" height="501" alt="csrf1" src="https://github.com/user-attachments/assets/9140324c-fa9f-4d40-8c2c-48f3088ce3b3" />
+
 #### Korak 2: Izrada exploit koda
 S obzirom na to da koristim **Burp Community Edition**, ručno sam kreirala HTML formu koja automatski vrši "submit" zahteva koristeći JavaScript.
 
@@ -45,7 +47,8 @@ S obzirom na to da koristim **Burp Community Edition**, ručno sam kreirala HTML
     document.forms[0].submit();
 </script>
 ```
-![Opis slike](./csrf2.jpg)
+<img width="1743" height="740" alt="csrf2" src="https://github.com/user-attachments/assets/a15a2d4f-5400-4678-b491-809f52a8f9c1" />
+
 #### Korak 3: Isporuka napada (Exploit Server)
 Kod je nalepen u Body sekciju na Exploit Serveru. Prvo je korišćena opcija Store, a zatim View exploit kako bi se proverilo da li skripta radi na mom nalogu.
 
@@ -53,7 +56,8 @@ Kod je nalepen u Body sekciju na Exploit Serveru. Prvo je korišćena opcija Sto
 
 #### Korak 4: Rešavanje laboratorije
 Nakon potvrde da exploit radi, kliknula sam na Deliver exploit to victim. Bot je posetio link, što je okinulo promenu njegovog email-a na serveru.
-![Opis slike](./csrf-solved.jpg)
+
+<img width="1551" height="822" alt="csrf-solved" src="https://github.com/user-attachments/assets/e4ebdf50-f8bb-4836-a274-88d2e19611e6" />
 
 ---
 
@@ -67,7 +71,9 @@ Cilj ovog izazova je bio zaobići CSRF zaštitu koja je polovično implementiran
 
 #### Korak 1: Analiza ranjivosti u Repeater-u
 Nakon presretanja legitimnog `POST` zahteva, utvrđeno je da server blokira promenu email-a ako je token neispravan. Međutim, promenom HTTP metode u `GET` pomoću opcije "Change request method" u Burp Suite-u, primetila sam da server prihvata zahtev čak i kada se CSRF token potpuno ukloni.
-![Opis slike](./lab2-csrf.jpg)
+
+<img width="1746" height="983" alt="lab2-csrf" src="https://github.com/user-attachments/assets/20638b42-b716-4bc1-a725-dba37accde8a" />
+
 #### Korak 2: Konstrukcija napada
 Iskoristila sam HTML formu bez definisane metode (default je `GET`). Na taj način browser žrtve šalje parametre kroz URL, što server ne proverava.
 
@@ -83,7 +89,8 @@ Iskoristila sam HTML formu bez definisane metode (default je `GET`). Na taj nač
 #### Korak 3: Isporuka
 
 Nakon postavljanja koda na Exploit Server i klika na "Deliver exploit to victim", lab je uspešno rešen.
-![Opis slike](./lab2-csrf-solved.jpg)
+
+<img width="1476" height="246" alt="lab2-csrf-solved" src="https://github.com/user-attachments/assets/3bd14507-e919-4e9f-a994-11eb25bd0f91" />
 
 ## Zadatak 3: CSRF where token validation depends on token being present
 **Nivo:** Practitioner (Plavi)
@@ -98,7 +105,7 @@ Nakon presretanja legitimnog `POST` zahteva za promenu email-a u Burp Suite-u, p
 * Prvobitno sam modifikovala vrednost `csrf` tokena, što je rezultovalo greškom `"Invalid CSRF token"`. 
 * Zatim sam u potpunosti obrisala red koji sadrži `csrf=[vrednost]` parametar (zajedno sa pratećim `&` znakom). Nakon slanja takvog zahteva, server je vratio status **302 Found**, što potvrđuje da je promena email-a prihvaćena bez provere tokena.
 
-![Opis slike](./lab3-izbrisan-csrf.jpg)
+<img width="1263" height="786" alt="lab3-izbrisan-csrf" src="https://github.com/user-attachments/assets/ab2b357a-d716-4d87-8489-1d6dbdbe563f" />
 *Slika 1: Prikaz Repeater prozora gde se vidi POST zahtev bez CSRF parametra i uspešan odgovor servera.*
 
 #### Korak 2: Konstrukcija malicioznog koda
@@ -112,7 +119,7 @@ Na osnovu analize, kreirala sam HTML formu na exploit serveru. Ključno je bilo 
     document.forms[0].submit();
 </script>
 ```
-![Opis slike](./lab3-body.jpg)
+<img width="1570" height="582" alt="lab3-body" src="https://github.com/user-attachments/assets/e2b885d0-1068-4f83-b9aa-04b8a8fbbab6" />
 Slika 2: Konfiguracija malicioznog koda u Body sekciji exploit servera.
 
 #### Korak 3: Isporuka i finalizacija napada
@@ -126,7 +133,7 @@ Modifikacija za žrtvu: Pošto aplikacija ne dozvoljava registraciju već postoj
 
 Deliver exploit to victim: Klikom na ovo dugme, server simulira slanje linka žrtvi. Kada žrtva (bot) poseti link, njen browser automatski šalje falsifikovani zahtev bez tokena, čime se menja njen email.
 
-![Screenshot 1 - Intercepting Pairs](./lab3-final.jpg)
+<img width="1460" height="246" alt="lab3-final" src="https://github.com/user-attachments/assets/4f1b3622-453f-4444-a982-5b361bc3ba4c" />
 Slika 3: Potvrda o uspešno rešenom Practitioner izazovu.
 
 ## Zadatak 4: CSRF where token is not tied to user session
@@ -140,32 +147,31 @@ Ova laboratorija demonstrira ozbiljan bezbednosni propust u implementaciji CSRF 
 #### Korak 1: Presretanje validnog tokena (Token Stealing)
 Prvi korak je bio dobijanje validnog CSRF tokena koji server prepoznaje. Prijavila sam se kao korisnik `wiener` i pokrenula promenu email adrese uz uključen **Burp Intercept**. Iskopirala sam vrednost tokena iz zahteva.
 
-![Screenshot 1 - Intercepting Token](./drop.jpg)
+<img width="1541" height="847" alt="drop" src="https://github.com/user-attachments/assets/f406d435-13b0-4d54-b74f-5da350b3a922" />
 *Slika 1: Presretanje POST zahteva i kopiranje CSRF tokena pre slanja serveru.*
 
 Da bih osigurala da token ostane "svež" i neiskorišćen za finalni napad, iskoristila sam opciju **Drop**. Time je zahtev poništen, a token je ostao validan u bazi servera.
 
-![Screenshot 2 - Request Dropped](./posle-dropa.jpg)
+<img width="1562" height="932" alt="posle-dropa" src="https://github.com/user-attachments/assets/213b52f8-93b3-4446-985e-011be243b4f1" />
 *Slika 2: Potvrda da je zahtev odbačen (Dropped) kako bi se sačuvao integritet tokena.*
 
 #### Korak 2: Dokazivanje ranjivosti (Cross-User Validation)
 Kako bih potvrdila da tokeni nisu vezani za sesiju, prijavila sam se kao drugi korisnik (`carlos`) u odvojenoj sesiji. U **Repeateru** sam kreirala zahtev za promenu Carlosovog email-a, ali sam originalni token zamenila onim koji pripada korisniku `wiener`.
 
-![Screenshot 3 - CSRF Podmetanje](./podmetnuli-csrf.jpg)
+<img width="1455" height="756" alt="podmetnuli-csrf" src="https://github.com/user-attachments/assets/8fbd3fa6-ad36-411f-a740-f308ad74c0a7" />
 *Slika 3: Uspešno podmetanje Wienerovog tokena u Carlosov zahtev. Server vraća "302 Found", što je direktan dokaz ranjivosti.*
 
 #### Korak 3: Konstrukcija i isporuka eksploita
 Na exploit serveru sam kreirala malicioznu HTML formu. U `csrf` polje sam unela novi, neiskorišćeni token dobijen metodom iz Koraka 1. Skripta je konfigurisana da automatski izvrši "submit" čim žrtva poseti stranicu.
 
-![Screenshot 4 - Exploit Server Code](./lab4-body-final.jpg)
+<img width="1503" height="453" alt="lab4-body-final" src="https://github.com/user-attachments/assets/bb14dbe2-df5c-4ee2-8ee8-4e361b586278" />
 *Slika 4: Finalni payload na exploit serveru spreman za isporuku botu (žrtvi).*
 
 #### Korak 4: Finalna potvrda
 Nakon klika na **Deliver exploit to victim**, laboratorija je uspešno rešena. Bot je posetio maliciozni link, njegov browser je poslao zahtev sa mojim tokenom, a server je promenu email-a prihvatio kao legitimnu.
 
-![Screenshot 5 - Lab Solved](./lab4-finished.jpg)
+<img width="1457" height="247" alt="lab4-finished" src="https://github.com/user-attachments/assets/9bd292c4-7e21-4b05-9fd6-1a6798638712" />
 *Slika 5: Potvrda o uspešno rešenom Practitioner izazovu.*
-
 
 ## Zadatak 5: CSRF where token is tied to non-session cookie
 **Nivo:** Practitioner (Plavi)
@@ -180,7 +186,7 @@ Prijavila sam se na nalog `wiener` i presrela zahtev za promenu email-a. Iz HTTP
 * **Kolačić:** `csrfKey=R77DnIhcBRaZNlntQ44gUNlf4PjuozVn`
 * **Parametar:** `csrf=jmefDXbwRr9vBkEXU1GQAtCCRbelaqjN`
 
-![Screenshot 1 - Intercepting Pairs](./lab5-skrin1.jpg)
+<img width="1491" height="832" alt="lab5-skrin1" src="https://github.com/user-attachments/assets/61130c72-80d2-4185-8cc3-f4a0c91f5dce" />
 *Slika 1: Presretanje uparenog csrfKey kolačića i csrf tokena iz validne sesije.*
 
 #### Korak 2: Iskorišćavanje Header Injection ranjivosti
@@ -197,11 +203,11 @@ Na exploit serveru sam kreirala payload koji kombinuje promenu email-a i injekci
 
 <img src="https://[LAB-ID].web-security-academy.net/?search=test%0d%0aSet-Cookie:%20csrfKey=R77DnIhcBRaZNlntQ44gUNlf4PjuozVn%3b%20SameSite=None" onerror="document.forms[0].submit()">
 ```
-![Screenshot 1 - Intercepting Pairs](./lab5-body.jpg)
+<img width="1398" height="467" alt="lab5-body" src="https://github.com/user-attachments/assets/f589bfc8-483c-436f-8be6-2b886c924869" />
 Slika 2: Sklopljen napad na exploit serveru koji vrši injekciju kolačića i automatski submit forme.
 
 #### Korak 4: Rezultat napada
 Nakon isporuke napada (Deliver exploit to victim), browser žrtve je primio moj csrfKey putem pretrage, a potom poslao zahtev za promenu email-a sa mojim csrf tokenom. Pošto se parovi poklapaju, server je dozvolio akciju iako sesija (session cookie) pripada žrtvi.
 
-![Screenshot 1 - Intercepting Pairs](./lab5-finished.jpg)
+<img width="1472" height="247" alt="lab5-finished" src="https://github.com/user-attachments/assets/087b50f3-508f-4347-930a-2115d10c18ec" />
 Slika 3: Potvrda o uspešno rešenom finalnom Practitioner izazovu iz CSRF oblasti.
