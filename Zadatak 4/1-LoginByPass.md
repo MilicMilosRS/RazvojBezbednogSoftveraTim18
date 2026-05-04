@@ -44,7 +44,7 @@ docker exec -it tudo-app php /var/www/html/progpilot_v1.3.0.phar /var/www/html
 
 **📸 Progpilot se kopira i pokreće — početak rezultata:**
 
-![Progpilot pokretanje](slika1.jpg)
+<img width="1596" height="1005" alt="slika1" src="https://github.com/user-attachments/assets/c9cee55f-0dfe-4865-8cd9-83bdaadcd490" />
 
 ---
 
@@ -77,7 +77,7 @@ U rezultatima se pojavio ovaj nalaz:
 
 **📸 Progpilot nalazi SQL Injection u forgotusername.php:**
 
-![Progpilot SQLi nalaz](slika2.jpg)
+<img width="1400" height="993" alt="slika2" src="https://github.com/user-attachments/assets/7238e1ac-191b-4f0b-9a9c-96c771c3fc1a" />
 
 ---
 
@@ -101,7 +101,7 @@ $ret = pg_query($db, "select * from users where username='".$username."';");
 
 **📸 Ranjivi kod u terminalu:**
 
-![Ranjivi kod](slika3.jpg)
+<img width="1717" height="1011" alt="slika3" src="https://github.com/user-attachments/assets/3be349bf-3d0f-49b5-bf13-7a2324b6058c" />
 
 Progpilot nam je tačno pokazao: `$username` (linija 9) putuje direktno do `pg_query()` (linija 12) — napadač može ubaciti sopstveni SQL.
 
@@ -117,7 +117,7 @@ http://localhost:8000/forgotusername.php
 
 **📸 Prazna forma pre unosa:**
 
-![Forma prazna](rb1.jpg)
+<img width="1880" height="523" alt="rb1" src="https://github.com/user-attachments/assets/f3c19369-d023-43b5-9ec4-abc90fd13cad" />
 
 ---
 
@@ -136,7 +136,7 @@ Zašto `uid=3`? Videli smo u admin panelu da je raspored:
 
 **📸 Payload unet u formu:**
 
-![Payload unet](rb2.jpg)
+<img width="1481" height="782" alt="rb2" src="https://github.com/user-attachments/assets/5310fc34-cd35-40fd-bbb0-38117718dc63" />
 
 **Šta se dešava u bazi podataka:**
 
@@ -163,7 +163,7 @@ Aplikacija prikazuje **"User doesn't exist"** crvenim slovima.
 
 **📸 "User doesn't exist" — ali token je ubačen:**
 
-![User doesnt exist](rb3.jpg)
+<img width="1285" height="542" alt="rb3" src="https://github.com/user-attachments/assets/7cb460a3-e9be-42a9-a44f-25516117daf8" />
 
 ---
 
@@ -177,7 +177,7 @@ http://localhost:8000/resetpassword.php?token=user2token
 
 **📸 Reset stranica — token je validan (URL vidljiv u browseru):**
 
-![Reset token](rb4.jpg)
+<img width="1918" height="472" alt="rb4" src="https://github.com/user-attachments/assets/847320c5-baa6-4ae1-9c1b-0d66f123c64c" />
 
 ---
 
@@ -187,7 +187,7 @@ Nova lozinka: `newpass123`
 
 **📸 "Password changed!" — lozinka promenjena:**
 
-![Password changed](rb5.jpg)
+<img width="1368" height="400" alt="rb5" src="https://github.com/user-attachments/assets/0e836ef1-d818-46b4-9a05-3d3bcb88fab4" />
 
 ---
 
@@ -201,7 +201,7 @@ Password: newpass123
 
 **📸 Login forma popunjena:**
 
-![Login forma](rb6.jpg)
+<img width="1242" height="431" alt="rb6" src="https://github.com/user-attachments/assets/16ca78d8-0f23-403c-a037-6f00fbf142d9" />
 
 ---
 
@@ -209,7 +209,7 @@ Password: newpass123
 
 **📸 Ulogovani kao user2 — bez poznavanja originalne lozinke:**
 
-![Uspesno ulogovan](rb7.jpg)
+<img width="1513" height="845" alt="rb7" src="https://github.com/user-attachments/assets/4d89d9bf-4516-4167-a9f1-8c55f979d35b" />
 
 ---
 
