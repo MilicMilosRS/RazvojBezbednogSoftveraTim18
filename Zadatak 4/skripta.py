@@ -56,12 +56,12 @@ def _admin_login():
         page.goto("http://127.0.0.1:8000/login.php")
         page.fill('input[name="username"]', "admin")
         page.fill('input[name="password"]', "admin")
-        page.click('input[type="submit"]')
+        page.click('input[value="Log In"]')
 
         page.wait_for_timeout(2000)
 
         browser.close()
-    print("Admin visited the page")
+        print("Admin visited the page")
 
 
 def privilege_escalation(session):
