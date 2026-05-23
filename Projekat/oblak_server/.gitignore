@@ -1,0 +1,30 @@
+# --- Python virtuelna okruženja ---
+venv/
+.venv/
+env/
+venv.bak/
+
+# --- Python byte-code (keširani fajlovi) ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Baze podataka i lokalni podaci ---
+oblak.db
+storage/
+
+# --- Sigurnosni fajlovi i tokeni ---
+.oblak_token
+.env
+*.pem
+*.key
+
+# --- Arhive i izveštaji ---
+*.zip
+bandit_izvestaj.txt
+
+# --- IDE i sistemski fajlovi ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

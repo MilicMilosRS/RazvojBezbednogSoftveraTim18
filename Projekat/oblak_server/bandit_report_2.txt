@@ -1,0 +1,61 @@
+Run started:2026-05-23 20:22:41.880480+00:00
+
+Test results:
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'moj_super_tajni_kljuc_za_oblak'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\auth.py:7:13
+6	# Ovo bi u produkciji trebalo da bude u .env fajlu!
+7	SECRET_KEY = "moj_super_tajni_kljuc_za_oblak"
+8	ALGORITHM = "HS256"
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: '.oblak_token'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\cli.py:10:13
+9	SERVER_URL = "http://localhost:8000"
+10	TOKEN_FILE = ".oblak_token"
+11	
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'tajna123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\main.py:53:43
+52	def login(username: str = Form(...), password: str = Form(...)):
+53	    if username == "admin" and password == "tajna123":
+54	        token = create_access_token(username)
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'bearer'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: .\main.py:56:39
+55	        log_audit(username, "Ulogovao se na sistem")
+56	        return {"access_token": token, "token_type": "bearer"}
+57	    raise HTTPException(status_code=401, detail="Pogrešni kredencijali")
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 220
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 4
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 4
+		High: 0
+Files skipped (0):

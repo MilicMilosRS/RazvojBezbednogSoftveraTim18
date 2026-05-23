@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pyjwt
+python-multipart
+typer
+requests
+Werkzeug
+bandit
