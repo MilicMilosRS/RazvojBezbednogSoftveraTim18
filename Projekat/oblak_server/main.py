@@ -163,10 +163,10 @@ def generate_url(task_id: str, username: str = Depends(verify_token)):
     
     return {"url": generated_url}
 
-from firecracker_manager import FirecrackerManager
+from docker_manager import DockerManager
 import time
 
-fc_manager = FirecrackerManager()
+fc_manager = DockerManager()
 
 def save_run(run_id, task_id, username, status, output=None,
              duration_ms=None, vm_id=None):

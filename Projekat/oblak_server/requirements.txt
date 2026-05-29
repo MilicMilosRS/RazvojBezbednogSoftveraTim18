@@ -6,3 +6,4 @@ typer
 requests
 Werkzeug
 bandit
+docker
