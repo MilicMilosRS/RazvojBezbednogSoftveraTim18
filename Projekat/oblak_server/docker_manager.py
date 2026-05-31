@@ -20,6 +20,7 @@ class DockerManager:
 
         container = self.client.containers.run(
             "python:3.11-slim",
+            pids_limit=64,
             command=["sh", "-c", cmd],
             working_dir="/workspace",
             volumes={os.path.abspath(task_dir): {
