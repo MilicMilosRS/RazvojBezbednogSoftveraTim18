@@ -87,9 +87,9 @@ def login(username: str = Form(...), password: str = Form(...)):
 
 @app.post("/upload")
 def upload_code(
+    background_tasks: BackgroundTasks,
     script: UploadFile = File(...),
     requirements: UploadFile = File(None),   # opciono
-    background_tasks: BackgroundTasks, 
     username: str = Depends(verify_token)
 ):
     # Path Traversal zaštita za oba fajla
@@ -130,7 +130,7 @@ def upload_code(
               (" sa requirements.txt" if has_requirements else "") +
               f" pod ID-jem {task_id}")
     
-    background_tasks.add_task(verify, task_id, script_path)
+    background_tasks.add_task(verify, task_id, task_dir)
      
     return {
         "message": "Fajl(ovi) uspešno sačuvani.",
@@ -193,21 +193,32 @@ def run_code(task_id: str, request: Request,
     source_ip = request.client.host
     conn = sqlite3.connect("oblak.db")
     cursor = conn.cursor()
+    # Dodato 'status' u SELECT
     cursor.execute(
-        "SELECT username, filename FROM tasks WHERE task_id = ? AND username = ?",
+        "SELECT username, filename, status FROM tasks WHERE task_id = ? AND username = ?",
         (task_id, username)
     )
     row = cursor.fetchone()
+    conn.close()
     if not row:
-        conn.close()
         log_audit(username, "Pokušaj izvršavanja nepostojećeg/tuđeg taska",
                   task_id=task_id, source_ip=source_ip, result="DENIED")
         raise HTTPException(status_code=404, detail="Task nije pronađen")
 
-    owner, task_dir = row
-    conn.close()
+    owner, task_dir, status = row
 
-    run_id = str(uuid.uuid4())   # svako izvršavanje ima svoj ID
+    # Provera verifikacije — samo VERIFIED tasks mogu da se pokreću
+    if status != "VERIFIED":
+        log_audit(username,
+                  f"Pokušaj izvršavanja neverifikovanog taska (status={status})",
+                  task_id=task_id, source_ip=source_ip, result="DENIED")
+        raise HTTPException(
+            status_code=403,
+            detail=f"Task nije verifikovan (trenutni status: {status}). "
+                   f"Sačekajte da verifikacija završi ili pošaljite ispravan kod."
+        )
+
+    run_id = str(uuid.uuid4())
     log_audit(username, "Započeo izvršavanje", task_id=task_id,
               source_ip=source_ip, result="STARTED")
 
@@ -218,7 +229,6 @@ def run_code(task_id: str, request: Request,
         output = fc_manager.get_output(vm_id, timeout=30)
         duration = int((time.time() - start) * 1000)
 
-        _update_status(task_id, "COMPLETED")
         save_run(run_id, task_id, username, "SUCCESS",
                  output=output, duration_ms=duration, vm_id=vm_id)
         log_audit(username, "Završio izvršavanje", task_id=task_id,
@@ -228,7 +238,6 @@ def run_code(task_id: str, request: Request,
 
     except Exception as e:
         duration = int((time.time() - start) * 1000)
-        _update_status(task_id, "FAILED")
         save_run(run_id, task_id, username, "ERROR",
                  output=str(e), duration_ms=duration, vm_id=vm_id)
         log_audit(username, "Greška pri izvršavanju", task_id=task_id,
@@ -237,20 +246,6 @@ def run_code(task_id: str, request: Request,
     finally:
         if vm_id:
             fc_manager.stop_vm(vm_id)
-
-
-def _update_status(task_id, status, output=None):
-    conn = sqlite3.connect("oblak.db")
-    if output is not None:
-        conn.cursor().execute(
-            "UPDATE tasks SET status = ?, output = ? WHERE task_id = ?",
-            (status, output, task_id))
-    else:
-        conn.cursor().execute(
-            "UPDATE tasks SET status = ? WHERE task_id = ?",
-            (status, task_id))
-    conn.commit()
-    conn.close()
 
 
 @app.get("/audit-log")
