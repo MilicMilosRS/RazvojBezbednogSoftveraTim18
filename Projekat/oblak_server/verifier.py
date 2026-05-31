@@ -97,59 +97,39 @@ def install_dependencies(extract_path: str) -> bool:
     )
     return result.returncode == 0
 
-def verify(task_id: str, file_path: str):
-    """
-    Glavni verifikacioni pipeline.
-    Poziva se nakon upload-a.
-    """
+def verify(task_id: str, task_dir: str):
     try:
         update_status(task_id, "VERIFYING")
-        
-        # 1. ClamAV anti-virus sken
-        av_result = run_clamav(file_path)
+
+        script_path = os.path.join(task_dir, "main.py")
+
+        # 1. ClamAV anti-virus sken cele task fascikle
+        av_result = run_clamav(task_dir)
         if not av_result["passed"]:
             update_status(task_id, "REJECTED_AV")
-            return {"passed": False, "stage": "antivirus", "detail": av_result["output"]}
-        
-        # 2. Raspakivanje ZIP-a
-        extract_path = os.path.join(STORAGE_DIR, task_id + "_extracted")
-        os.makedirs(extract_path, exist_ok=True)
-        with zipfile.ZipFile(file_path, 'r') as z:
-            z.extractall(extract_path)
-        
-        # 3. Bandit statička analiza
-        bandit_result = run_bandit(extract_path)
+            return {"passed": False, "stage": "antivirus",
+                    "detail": av_result["output"]}
+
+        # 2. Bandit statička analiza (skenira sve .py u task_dir rekurzivno)
+        bandit_result = run_bandit(task_dir)
         if not bandit_result["passed"]:
             update_status(task_id, "REJECTED_BANDIT")
-            return {"passed": False, "stage": "bandit", 
-                    "detail": f"{bandit_result['high_severity_count']} HIGH nalaza"}
-        
-        # 4. LLM analiza — čita main.py ili prvi .py fajl
-        py_files = [f for f in os.listdir(extract_path) if f.endswith(".py")]
-        if py_files:
-            with open(os.path.join(extract_path, py_files[0]), "r") as f:
+            return {"passed": False, "stage": "bandit",
+                    "detail": f"{bandit_result['high_severity_count']} HIGH/MEDIUM nalaza"}
+
+        # 3. LLM analiza glavne skripte
+        if os.path.exists(script_path):
+            with open(script_path, "r") as f:
                 code = f.read()
             llm_result = run_llm_analysis(code)
             if not llm_result.get("safe"):
                 update_status(task_id, "REJECTED_LLM")
-                return {"passed": False, "stage": "llm", 
+                return {"passed": False, "stage": "llm",
                         "detail": llm_result.get("reason")}
-        
-        # 5. Instalacija zavisnosti
-        deps_ok = install_dependencies(extract_path)
-        if not deps_ok:
-            update_status(task_id, "REJECTED_DEPS")
-            return {"passed": False, "stage": "dependencies"}
-        
+
         update_status(task_id, "VERIFIED")
         return {"passed": True}
-    
-    except zipfile.BadZipFile:
-        # Fajl nije validan ZIP
-        update_status(task_id, "REJECTED_INVALID")
-        return {"passed": False, "stage": "zip", "detail": "Nevažeći ZIP fajl"}
-    
+
     except Exception as e:
-        # Neočekivana greška — odbij, ne propuštaj
         update_status(task_id, "REJECTED_ERROR")
         return {"passed": False, "stage": "unknown", "detail": str(e)}
