@@ -7,3 +7,5 @@ requests
 Werkzeug
 bandit
 docker
+google-genai
+python-dotenv

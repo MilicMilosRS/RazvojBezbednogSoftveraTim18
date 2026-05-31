@@ -1,0 +1,115 @@
+Run started:2026-05-27 11:47:26.450322+00:00
+
+Test results:
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: .\verifier.py:1:0
+1	import subprocess
+2	import os
+3	import sqlite3
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html
+   Location: .\verifier.py:21:13
+20	    """Pokreće Bandit statičku analizu na zadatom folderu."""
+21	    result = subprocess.run(
+22	        ["bandit", "-r", code_path, "-f", "json", "-q"],
+23	        capture_output=True, text=True
+24	    )
+25	    # Bandit vraća exit code 1 ako nađe probleme
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: .\verifier.py:21:13
+20	    """Pokreće Bandit statičku analizu na zadatom folderu."""
+21	    result = subprocess.run(
+22	        ["bandit", "-r", code_path, "-f", "json", "-q"],
+23	        capture_output=True, text=True
+24	    )
+25	    # Bandit vraća exit code 1 ako nađe probleme
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html
+   Location: .\verifier.py:41:13
+40	    """Skenira fajl pomoću ClamAV-a."""
+41	    result = subprocess.run(
+42	        ["clamscan", "--no-summary", file_path],
+43	        capture_output=True, text=True
+44	    )
+45	    # Exit code 0 = čisto, 1 = virus pronađen
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: .\verifier.py:41:13
+40	    """Skenira fajl pomoću ClamAV-a."""
+41	    result = subprocess.run(
+42	        ["clamscan", "--no-summary", file_path],
+43	        capture_output=True, text=True
+44	    )
+45	    # Exit code 0 = čisto, 1 = virus pronađen
+
+--------------------------------------------------
+>> Issue: [B607:start_process_with_partial_path] Starting a process with a partial executable path
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b607_start_process_with_partial_path.html
+   Location: .\verifier.py:82:13
+81	    
+82	    result = subprocess.run(
+83	        ["pip", "install", "-r", req_file, 
+84	         "--target", sandbox_path,      # Instaliraj u sandbox, ne globalno
+85	         "--quiet"],
+86	        capture_output=True, text=True,
+87	        timeout=60                       # Max 60 sekundi
+88	    )
+89	    return result.returncode == 0
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: .\verifier.py:82:13
+81	    
+82	    result = subprocess.run(
+83	        ["pip", "install", "-r", req_file, 
+84	         "--target", sandbox_path,      # Instaliraj u sandbox, ne globalno
+85	         "--quiet"],
+86	        capture_output=True, text=True,
+87	        timeout=60                       # Max 60 sekundi
+88	    )
+89	    return result.returncode == 0
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 110
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 7
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 7
+Files skipped (0):

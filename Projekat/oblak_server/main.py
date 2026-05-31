@@ -1,10 +1,14 @@
-from fastapi import FastAPI, Depends, UploadFile, File, Form, HTTPException, Request
+from fastapi import FastAPI, Depends, UploadFile, File, Form, HTTPException, BackgroundTasks, Request
+from verifier import verify
 from auth import create_access_token, verify_token
 import os
+from dotenv import load_dotenv
 import shutil
 import sqlite3
 import uuid
 from werkzeug.utils import secure_filename # Dodato za bezbednost
+
+load_dotenv()
 
 app = FastAPI(title="Oblak API Server")
 
@@ -85,6 +89,7 @@ def login(username: str = Form(...), password: str = Form(...)):
 def upload_code(
     script: UploadFile = File(...),
     requirements: UploadFile = File(None),   # opciono
+    background_tasks: BackgroundTasks, 
     username: str = Depends(verify_token)
 ):
     # Path Traversal zaštita za oba fajla
@@ -124,7 +129,9 @@ def upload_code(
     log_audit(username, f"Uploadovao {safe_script}" +
               (" sa requirements.txt" if has_requirements else "") +
               f" pod ID-jem {task_id}")
-
+    
+    background_tasks.add_task(verify, task_id, script_path)
+     
     return {
         "message": "Fajl(ovi) uspešno sačuvani.",
         "task_id": task_id,
